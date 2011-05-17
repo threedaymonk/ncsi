@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Network Connectivity Status Indicator
+#
+# Detect whether the computer has internet access, as described at:
+# http://blog.superuser.com/2011/05/16/windows-7-network-awareness/
+# http://technet.microsoft.com/en-us/library/cc766017(WS.10).aspx
+#
+# Return code is:
+# 0 - Connection is working
+# 1 - DNS is working, but web traffic is not working: there may be a log-on page
+# 2 - DNS is not working: there is a problem with the connection
+
+ActiveDnsProbeContent="131.107.255.255"
+ActiveDnsProbeHost="dns.msftncsi.com"
+ActiveWebProbeContent="Microsoft NCSI"
+ActiveWebProbeHost="www.msftncsi.com"
+ActiveWebProbePath="ncsi.txt"
+
+ReceivedContent=$(curl -s "http://${ActiveWebProbeHost}/${ActiveWebProbePath}")
+
+if [ "${ReceivedContent}" == "${ActiveWebProbeContent}" ]; then
+  exit 0
+fi
+
+host ${ActiveDnsProbeHost} | grep -Fq ${ActiveDnsProbeContent}
+
+if [ $? -eq 0 ]; then
+  exit 1
+else
+  exit 2
+fi
